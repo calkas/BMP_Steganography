@@ -1,6 +1,4 @@
 #include <iostream>
-#include <fstream>
-#include <stdio.h>
 #include <string>
 #include <bitset>
 
@@ -13,7 +11,7 @@ using namespace std;
 void fun()
 {
 	cout<<"------------------\n";
-	int byteTab[4] = {2,6,14,30};
+	int byteTab[4] = {1,6,14,30};
 	
 	bitset<8> bset1;
 	
@@ -25,6 +23,8 @@ void fun()
 		
 		bitset<8> bset1(byteTab[i]);
 		bset1.set(0,0);
+		char znak = (char)bset1.to_ulong();
+		cout<<znak<<endl;
 		cout<<byteTab[i]<<" - "<<bset1<<" - "<<bset1.to_ulong()<<endl;
 	}
 	
@@ -33,42 +33,27 @@ void fun()
 
 int main(int argc, char** argv) {
 	
-	//Plik tylko do odczytu
-//	ifstream plikBMP("OriginalBmp.bmp");
 
-	string filePath = "OriginalBmp.bmp";
-	string convfilePath = "ConvOriginalBmp.bmp";
+	string originalFilePath = "OriginalBmp.bmp";
+	string convfilePath     = "ConvOriginalBmp.bmp";
 	
-	string nazwa = "HELLO";
+	// ---------------------- TEXT TO HIDE --------------------------------
+	
+	string txtToHide = "Tajny kod: 0044400033338888DDEFDSEDAC9CC##";
+	
+	// --------------------------------------------------------------------
 	
 	HideData_BMP_R hideDataObj;
-	hideDataObj.OpenBmpFile(filePath);
-	hideDataObj.ShowBmpFile();
+	hideDataObj.OpenBmpFile(originalFilePath);
+	//hideDataObj.ShowBmpFile();
 	hideDataObj.ShowBmpFileParameters();
-	hideDataObj.BmpHideTxt(nazwa,convfilePath);
+	hideDataObj.BmpHideTxt(txtToHide,convfilePath);
 	
 	
-	
-	std::string binary = bitset<8>(4).to_string();
-	cout<<binary<<endl;
-	
-	std::bitset<8> bset1(binary);
-	cout<<bset1.to_ulong()<<endl;
-	
-	//fun();
-	
-	unsigned int a = 69;
-	
-	cout<<"string wielkosc: "<<nazwa.size()<<endl;
-	cout<<"string literka: "<<nazwa[0]<<endl;
+	string hiddenTxt = hideDataObj.ShowHiddenTxt();
 	
 	
-	
-	
-	
-	
-	
-	
+	cout<<hiddenTxt<<endl;
 	
 	return 0;
 }

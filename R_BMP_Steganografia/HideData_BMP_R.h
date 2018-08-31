@@ -17,6 +17,7 @@ class HideData_BMP_R
 		
 		//STEGANOGRAFIA
 		bool BmpHideTxt(std::string &hideTxtData,std::string &m_ConvBmpFilePath);
+		std::string ShowHiddenTxt();
 		
 	protected:
 	private:
@@ -39,7 +40,8 @@ class HideData_BMP_R
 		std::fstream m_ConvBmpFILE;
 		bool m_statusFlag;	
 		
-		unsigned int m_nrBytesToHide;
+		unsigned int m_maxBytesToHide;
+		size_t m_nrOfBytesToHide;
 		
 		
 		//BMP 
@@ -55,9 +57,6 @@ class HideData_BMP_R
 		static const int BMP_IMAGE_WIDTH_OFFSET  = 18;
 		static const int BMP_IMAGE_HEIGHT_OFFSET = 22;
 		static const int BMP_SIZE_IMAGE_OFFSET   = 34;
-		
-		
-
 };
 
 #endif

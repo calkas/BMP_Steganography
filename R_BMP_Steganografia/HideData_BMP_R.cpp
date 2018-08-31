@@ -2,6 +2,8 @@
 #include <conio.h>
 #include <bitset>
 #include <ios>
+#include <stdio.h>      /* printf */
+#include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
 ////////////////////////////////////////////////////////////////////////////
 /// METHOD NAME: HideData_BMP_R::HideData_BMP_R
@@ -82,7 +84,7 @@ bool HideData_BMP_R::OpenBmpFile(std::string &filePath)
 					return false;
 				}
 				
-				m_nrBytesToHide = static_cast<unsigned int>(m_bmpiSizeImage / 8);
+				m_maxBytesToHide = static_cast<unsigned int>(m_bmpiSizeImage / 8);
 				m_bmpiHeaderSize = m_bmpiSize - m_bmpiSizeImage;
 				
 			}
@@ -140,7 +142,6 @@ bool HideData_BMP_R::CloseBmpFile()
 		return false;
 	}
 	
-	std::cout<<"Close BMP file: "<<m_BmpFilePath<<std::endl;
 	m_OryginalBmpFILE.close();
 	return true;
 }
@@ -201,16 +202,16 @@ bool HideData_BMP_R::ShowBmpFileParameters()
 		return false;
 	}
 	
-	std::cout<<"\nBMP file parameters:\n--------------------"<<std::endl;
+	std::cout<<"\n------------------------------\nBMP file parameters:"<<std::endl;
 	
-	std::cout<<"BMP Width: "<<m_bmpiWidth<<" pix"<<std::endl;
-	std::cout<<"BMP Height: "<<m_bmpiHeight<<" pix"<<std::endl;
-	std::cout<<"BMP File Size: "<<m_bmpiSize<<std::endl;
-	std::cout<<"BMP Header Size: "<< m_bmpiHeaderSize<<std::endl;
-	std::cout<<"BMP Image Size: "<<m_bmpiSizeImage<<std::endl;
+	std::cout<<" - BMP Width: "<<m_bmpiWidth<<" pix"<<std::endl;
+	std::cout<<" - BMP Height: "<<m_bmpiHeight<<" pix"<<std::endl;
+	std::cout<<" - BMP File Size: "<<m_bmpiSize<<std::endl;
+	std::cout<<" - BMP Header Size: "<< m_bmpiHeaderSize<<std::endl;
+	std::cout<<" - BMP Image Size: "<<m_bmpiSizeImage<<std::endl;
 	
-	std::cout<<"Nr of Bytes To Hide: "<<m_nrBytesToHide<<std::endl;
-	std::cout<<"--------------------"<<std::endl;
+	std::cout<<" - Nr of Bytes To Hide: "<<m_maxBytesToHide<<std::endl;
+	std::cout<<"------------------------------\n"<<std::endl;
 	
 	return true;	
 }
@@ -236,27 +237,32 @@ bool HideData_BMP_R::BmpHideTxt(std::string &hideTxtData, std::string &convBmpFi
 	}
 	
 	
-	size_t hideTxtDataSize = hideTxtData.size();
+	m_nrOfBytesToHide = hideTxtData.size();
 	
-	if(m_nrBytesToHide < hideTxtDataSize)
+	if(m_maxBytesToHide < m_nrOfBytesToHide)
 	{
 		std::cout<<"Error no place to hide"<<std::endl;
-		std::cout<<"Nr of Bytes To Hide: "<<m_nrBytesToHide<<std::endl;
-		std::cout<<"String Byte size: "<<hideTxtDataSize<<std::endl;
+		std::cout<<"Nr of Bytes To Hide: "<<m_maxBytesToHide<<std::endl;
+		std::cout<<"String Byte size: "<<m_nrOfBytesToHide<<std::endl;
 		return false;
 	}
 	
-	
+
 	//-------------------Create BMP File-------------------
 	
 	if(!CreateConvBmpFile(convBmpFilePath))
 	{
 		std::cout<<"Something wrong with created Conv BMP file: "<<convBmpFilePath<<std::endl;
-		return false;
-		
+		return false;	
 	}
+	std::cout<<"BMP file "<<convBmpFilePath<<" has been created."<<std::endl;
 	
-	//-------------------Copying BMP Header-------------------
+	std::cout<<"Text Hiding..."<<std::endl;
+	
+	clock_t t;
+	t = clock();
+
+	//------------------- Copying BMP Header -------------------
 	
 	//returning to the beginning of fstream
     m_OryginalBmpFILE.clear();
@@ -265,14 +271,15 @@ bool HideData_BMP_R::BmpHideTxt(std::string &hideTxtData, std::string &convBmpFi
 	m_ConvBmpFILE.clear();
 	m_ConvBmpFILE.seekg(0,std::ios_base::beg );
 	
-	
 	CopyBmpHeader();
 	
+	//-------------------  Hide data in BMP  -------------------
+	HideTxtInImage(hideTxtData);
 	
+	t = clock() - t;
 	
-
-
-
+	printf ("It took me %d clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
+	
 //	char znak;
 //
 //	while( !m_OryginalBmpFILE.eof() )
@@ -280,12 +287,13 @@ bool HideData_BMP_R::BmpHideTxt(std::string &hideTxtData, std::string &convBmpFi
 //        znak = m_OryginalBmpFILE.get();
 //        m_ConvBmpFILE.put(znak);
 //    }
-	
-	
+	std::cout<<"Done !"<<std::endl;
+	std::cout<<"\nClose BMP file: "<<m_ConvBmpFilePath<<std::endl;
 	
 	m_ConvBmpFILE.close();
-	
-	
+	std::cout<<"Close BMP file: "<<m_BmpFilePath<<"\n"<<std::endl;
+	m_OryginalBmpFILE.close();
+
 	return true;
 }
 
@@ -320,8 +328,17 @@ bool HideData_BMP_R::CreateConvBmpFile(std::string &convBmpFilePath)
 	return true;
 }
 
-
-
+////////////////////////////////////////////////////////////////////////////
+/// METHOD NAME: HideData_BMP_R::CopyBmpHeader
+/// 
+/// @par Full Description
+/// 
+/// 
+/// @return Return description
+/// @retval
+/// 
+/// 
+////////////////////////////////////////////////////////////////////////////
 bool HideData_BMP_R::CopyBmpHeader()
 {
 	if(m_ConvBmpFilePath.empty())
@@ -346,8 +363,21 @@ bool HideData_BMP_R::CopyBmpHeader()
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////////
+/// METHOD NAME: HideData_BMP_R::HideTxtInImage
+/// 
+/// @par Full Description
+/// 
+/// @param [in] hideTxtData Description for hideTxtData
+/// 
+/// @return Return description
+/// @retval
+/// 
+/// 
+////////////////////////////////////////////////////////////////////////////
+bool HideData_BMP_R::HideTxtInImage(std::string &hideTxtData)
+{
 
-bool HideData_BMP_R::HideTxtInImage(std::string &hideTxtData);
 	if(m_ConvBmpFilePath.empty())
 	{
 		return false;
@@ -359,17 +389,91 @@ bool HideData_BMP_R::HideTxtInImage(std::string &hideTxtData);
 		return false;
 	}
 	
+	//Bez Konca linii
 	
+	size_t hideTxtDataSize = hideTxtData.size();
+	char stringChar;
+	char znak;
 	
-	for( int byteIndex = 0; byteIndex < m_nrBytesToHide; byteIndex++ )
+	for( int byteIndex = 0; byteIndex < hideTxtDataSize; byteIndex++ )
 	{
-//		for()
-//		bitset<8> bset1;
+		stringChar = hideTxtData[byteIndex];
+		//std::cout<<stringChar<<std::endl;
+		std::bitset<8> bsetString(stringChar);
+		//std::cout<<bsetString.to_string()<<"\n----------------"<<std::endl;
 		
+		for( int bitIndex = 0; bitIndex < 8U; bitIndex++ )
+		{
+			znak = m_OryginalBmpFILE.get();
+			std::bitset<8> bsetBmp(znak);
+			//std::cout<<"znak = "<<bsetBmp.to_string()<<std::endl;
+			bsetBmp.set(0,bsetString[bitIndex]);
+			znak = (char)bsetBmp.to_ulong();
+			//std::cout<<bsetBmp.to_string()<<std::endl;
+			m_ConvBmpFILE.put(znak);
+		}
 	}
 	
 	
+	for(int bmpIndex = m_OryginalBmpFILE.tellg(); bmpIndex < m_bmpiSize; bmpIndex++)
+	{
+		znak = m_OryginalBmpFILE.get();
+		m_ConvBmpFILE.put(znak);	
+	}
+	
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////
+/// METHOD NAME: HideData_BMP_R::ShowHiddenTxt
+/// 
+/// @par Full Description
+/// 
+/// 
+/// @return Return description
+/// @retval
+/// 
+/// 
+////////////////////////////////////////////////////////////////////////////
+std::string HideData_BMP_R::ShowHiddenTxt()
+{
+	std::string txtData;
+	char stringChar;
+	char znak;
+	
+	m_ConvBmpFILE.open(m_ConvBmpFilePath.c_str(), std::ios::in|std::ios::binary);
+	if(m_ConvBmpFILE.is_open())
+	{
+	    m_ConvBmpFILE.clear();
+		m_ConvBmpFILE.seekg(m_bmpiHeaderSize,std::ios_base::beg );
+		std::cout<<"\n========================  Hidden Text  ========================"<<std::endl;
+		
+		for( int byteIndex = 0; byteIndex < m_nrOfBytesToHide; byteIndex++ )
+		{
+			std::bitset<8> bsetString(stringChar);
+
+			for( int bitIndex = 0; bitIndex < 8U; bitIndex++ )
+			{
+				znak = m_ConvBmpFILE.get();
+				std::bitset<8> bsetBmp(znak);
+				
+				bsetString.set(bitIndex,bsetBmp[0]);
+				
+			}
+			
+			stringChar = (char)bsetString.to_ulong();
+			
+			txtData += stringChar;
+		}
+		
+		m_ConvBmpFILE.close();
+	}
+	else
+	{
+		std::cout<<"Error No BMP file loaded"<<std::endl;
+	}
+	
+	return txtData;
 }
 
 ////////////////////////////////////////////////////////////////////////////
