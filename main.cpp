@@ -34,8 +34,8 @@ void fun()
 int main(int argc, char** argv) {
 	
 
-	string originalFilePath = "OriginalBmp.bmp";
-	string convfilePath     = "ConvOriginalBmp.bmp";
+    string originalFilePath = "OriginalBmp.bmp";
+    string convfilePath     = "ConvOriginalBmp.bmp";
 	
 	// ---------------------- TEXT TO HIDE --------------------------------
 	
