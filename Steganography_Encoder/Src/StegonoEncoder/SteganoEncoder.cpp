@@ -1,10 +1,10 @@
-#include "HideData_BMP_R.h"
+#include "SteganoEncoder.hpp"
 #include <assert.h>
 #include <bitset>
 #include <ios>
 
 
-HideData_BMP_R::HideData_BMP_R(std::string &filePath)
+SteganoEncoder::SteganoEncoder(std::string &filePath)
 {
     assert(!filePath.empty() && "[Error] File Path is empty");
     m_OriginalBmpFileStream.open(filePath.c_str(),std::ios::in | std::ios::binary );
@@ -12,13 +12,13 @@ HideData_BMP_R::HideData_BMP_R(std::string &filePath)
     assert(IsBmpFile() && "[Error] Is not real BMP file");
 }
 
-HideData_BMP_R::~HideData_BMP_R()
+SteganoEncoder::~SteganoEncoder()
 {
     m_OriginalBmpFileStream.close();
     m_ConvBmpFileStream.close();
 }
 
-bool HideData_BMP_R::IsBmpFile()
+bool SteganoEncoder::IsBmpFile()
 {
     unsigned char bmpSignature[2U];
 
@@ -38,7 +38,7 @@ bool HideData_BMP_R::IsBmpFile()
 }
 
 
-void HideData_BMP_R::GetBmpFileParameters()
+void SteganoEncoder::GetBmpFileParameters()
 {
     GetDataQWord(BMP_FILE_SIZE_OFFSET, m_BmpFileSizeInBytes);
     GetDataQWord(BMP_IMAGE_WIDTH_OFFSET, m_BmpImageWidth);
@@ -46,7 +46,7 @@ void HideData_BMP_R::GetBmpFileParameters()
     GetDataQWord(BMP_IMAGE_SIZE_OFFSET, m_BmpImageSize);
 }
 
-void HideData_BMP_R::ShowBmpFile()
+void SteganoEncoder::ShowBmpFile()
 {
     //returning to the beginning of fstream
     m_OriginalBmpFileStream.clear();
@@ -64,7 +64,7 @@ void HideData_BMP_R::ShowBmpFile()
     m_OriginalBmpFileStream.seekg(0,std::ios_base::beg );
 }
 
-void HideData_BMP_R::ShowBmpFileParameters()
+void SteganoEncoder::ShowBmpFileParameters()
 {
     std::cout<<"\n------------------------------\nBMP file parameters:"<<std::endl;
 
@@ -78,7 +78,7 @@ void HideData_BMP_R::ShowBmpFileParameters()
     std::cout<<"------------------------------\n"<<std::endl;
 }
 
-bool HideData_BMP_R::HideTxtStringIntoBmpFile(std::string &hideTxtData, std::string &convBmpFilePath)
+bool SteganoEncoder::Hide(std::string &hideTxtData, std::string &convBmpFilePath)
 {
     m_nrOfBytesToHide = hideTxtData.size();
 
@@ -129,7 +129,7 @@ bool HideData_BMP_R::HideTxtStringIntoBmpFile(std::string &hideTxtData, std::str
     return true;
 }
 
-bool HideData_BMP_R::CreateConvBmpFile(std::string &convBmpFilePath)
+bool SteganoEncoder::CreateConvBmpFile(std::string &convBmpFilePath)
 {
     if(convBmpFilePath.empty())
     {
@@ -148,7 +148,7 @@ bool HideData_BMP_R::CreateConvBmpFile(std::string &convBmpFilePath)
     return true;
 }
 
-void HideData_BMP_R::HideStringIntoBmpImageStructure(std::string &hideTxtData)
+void SteganoEncoder::HideStringIntoBmpImageStructure(std::string &hideTxtData)
 {
     char stringChar;
     char tempChar;
@@ -174,51 +174,8 @@ void HideData_BMP_R::HideStringIntoBmpImageStructure(std::string &hideTxtData)
         m_ConvBmpFileStream.put(tempChar);
     }
 }
-std::string HideData_BMP_R::ShowHiddenStringFromBmpFile()
-{
-    std::string txtData;
-    char stringChar;
-    char tempChar;
 
-    m_ConvBmpFileStream.open(m_ConvBmpFilePath.c_str(), std::ios::in|std::ios::binary);
-    if(m_ConvBmpFileStream.is_open())
-    {
-        m_ConvBmpFileStream.clear();
-        m_ConvBmpFileStream.seekg(m_BmpHeaderSize,std::ios_base::beg );
-        std::cout<<"\n========================  Hidden Text  ========================"<<std::endl;
-
-        for(int byteIndex = 0; byteIndex < m_nrOfBytesToHide; byteIndex++)
-        {
-            std::bitset<8> bsetString(stringChar);
-
-            for( int bitIndex = 0U; bitIndex < 8U; bitIndex++ )
-            {
-                tempChar = m_ConvBmpFileStream.get();
-                std::bitset<8> bsetBmp(tempChar);
-                bsetString.set(bitIndex,bsetBmp[0]);
-            }
-
-            stringChar = static_cast<char>(bsetString.to_ulong());
-
-            if(stringChar == '\x02')
-            {
-                std::cout << "JEST" <<std::endl;
-            }
-
-            txtData += stringChar;
-        }
-
-        m_ConvBmpFileStream.close();
-    }
-    else
-    {
-        std::cout<<"Error No BMP file loaded"<<std::endl;
-    }
-
-    return txtData;
-}
-
-void HideData_BMP_R::GetDataQWord(int offset,unsigned int &rOutput)
+void SteganoEncoder::GetDataQWord(int offset,unsigned int &rOutput)
 {
     unsigned char byteArray[4U];
 
@@ -233,7 +190,7 @@ void HideData_BMP_R::GetDataQWord(int offset,unsigned int &rOutput)
     rOutput = static_cast<unsigned int>( (byteArray[3U] << 24U) | (byteArray[2U] << 16U) | (byteArray[1U] << 8U) | (byteArray[0U] << 0U) );
 }
 
-void HideData_BMP_R::GetDataWord(int offset, unsigned int &rOutput)
+void SteganoEncoder::GetDataWord(int offset, unsigned int &rOutput)
 {
     unsigned char byteArray[2U];
 
@@ -248,7 +205,7 @@ void HideData_BMP_R::GetDataWord(int offset, unsigned int &rOutput)
     rOutput = static_cast<unsigned int>((byteArray[1] << 8U) | (byteArray[0] << 0U ));
 }
 
-void HideData_BMP_R::GetDataByte(int offset,unsigned char &rOutput)
+void SteganoEncoder::GetDataByte(int offset,unsigned char &rOutput)
 {
     //returning to the beginning of fstream
     m_OriginalBmpFileStream.clear();

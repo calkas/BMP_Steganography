@@ -7,12 +7,24 @@ using namespace std;
 int main(int argc, char** argv) {
 
 
-    string originalFilePath = "\\OriginalBmp.bmp";
-    string convfilePath     = "\\ConvOriginalBmp.bmp";
+    cout <<argc <<endl;
+    for (int i = 0; i<argc; i++)
+    {
+        cout << argv[i] << endl;
+
+    }
+
+    //string originalFilePath = string(argv[1]);
+
+
+
+    string originalFilePath = "../R_BMP_Steganography/OriginalBmp.bmp";
+    string convfilePath     = "../R_BMP_Steganography/ConvOriginalBmp.bmp";
 
     // ---------------------- TEXT TO HIDE --------------------------------
 
     string txtToHide = "Secret code: 0044400033338888DDEFDSEDAC9CC##";
+    txtToHide.push_back('\x02');
 
     // --------------------------------------------------------------------
 
@@ -21,6 +33,11 @@ int main(int argc, char** argv) {
     hideDataObj2.HideTxtStringIntoBmpFile(txtToHide,convfilePath);
 
     string hiddenTxt2 = hideDataObj2.ShowHiddenStringFromBmpFile();
+
+    for(auto i : hiddenTxt2)
+    {
+        cout << i <<endl;
+    }
     cout<<hiddenTxt2<<endl;
 
     return 0;
