@@ -1,22 +1,15 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.13)
 
-project(R_BMP_STEGANOGRAPHY LANGUAGES CXX)
+project(R_SteganographyEncoder LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#Bring the headers into the project
+add_subdirectory(Libs)
+add_subdirectory(Steganography_Encoder)
+add_subdirectory(Tests)
 
-set(INCLUDE_DIRECTORIES
-    R_BMP_Steganography)
+enable_testing()
 
-include_directories(${INCLUDE_DIRECTORIES})
-
-set(SOURCES
-    main.cpp
-	R_BMP_Steganography/HideData_BMP_R.cpp)
-
-#However, the file(GLOB...) allows for wildcard additions:
-#file(GLOB SOURCES "src/*.cpp")
-
-add_executable(R_BMP_STEGANOGRAPHY ${SOURCES})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Mics/Test_Img.bmp
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Tests/LibTest/BmpFileHandlerTest)

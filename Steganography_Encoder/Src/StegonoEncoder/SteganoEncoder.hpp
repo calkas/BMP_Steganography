@@ -1,9 +1,10 @@
 #ifndef STEGANO_ENCODER_HPP
-#define STEGANO_ENCODER
+#define STEGANO_ENCODER_HPP
 
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "BmpFileHandler.hpp"
 
 class SteganoEncoder
 {
@@ -17,17 +18,16 @@ public:
 
 private:
     void GetDataQWord(int offset,unsigned int &rOutput);
-    void GetDataWord(int offset,unsigned int &rOutput);
-    void GetDataByte(int offset, unsigned char &rOutput);
 
     void GetBmpFileParameters();
-    bool IsBmpFile();
     bool CreateConvBmpFile(std::string &convBmpFilePath);
     void HideStringIntoBmpImageStructure(std::string &hideTxtData);
 
+    BmpFileHandler bmpFileHandler;
+
     std::string m_ConvBmpFilePath;
 
-    std::fstream m_OriginalBmpFileStream;
+    std::ifstream m_OriginalBmpFileStream;
     std::fstream m_ConvBmpFileStream;
 
     unsigned int m_maxBytesToHide;
@@ -43,11 +43,6 @@ private:
     unsigned int m_BmpImageHeight;
     unsigned int m_BmpImageSize;
     unsigned int m_BmpHeaderSize;
-
-    static const int BMP_FILE_SIZE_OFFSET    = 2;
-    static const int BMP_IMAGE_WIDTH_OFFSET  = 18;
-    static const int BMP_IMAGE_HEIGHT_OFFSET = 22;
-    static const int BMP_IMAGE_SIZE_OFFSET   = 34;
 };
 
 #endif
