@@ -7,19 +7,28 @@ using namespace std;
 int main(int argc, char** argv) 
 {
 
-//    if(argc != 2)
-//    {
-//        cout << "[Error] Wrong number of arguments" <<endl;
-//        return 1;
-//    }
+    if(argc != 3)
+    {
+        cout << "[Error] Wrong number of arguments" <<endl;
+        return 1;
+    }
 
-//    string Path(argv[1]);
+    string Path(argv[1]);
 
-    string Path("/home/prybka/Project/bmp/BMP_Steganography/R_BMP_Steganography/OriginalBmp.bmp");
+    if(Path.empty())
+    {
+        cout << "[Error] Empty path file\n";
+        return 1;
+    }
 
     SteganoEncoder encoder(Path);
-    encoder.ShowBmpFileParameters();
-    encoder.ShowBmpFile();
+
+    string dataToHide(argv[2]);
+
+    if(encoder.Encode(dataToHide))
+    {
+        cout << "Done" <<endl;
+    }
 
     return 0;
 }

@@ -1,179 +1,102 @@
 #include "SteganoEncoder.hpp"
+#include <iostream>
 #include <assert.h>
 #include <bitset>
-#include <ios>
 
-SteganoEncoder::SteganoEncoder(std::string &filePath)
+SteganoEncoder::SteganoEncoder(std::string &filePath) :
+    bmpFileHandler(),
+    originalBmpFileStream(filePath.c_str(), std::ios::in | std::ios::binary),
+    convBmpFilePath("Converted.bmp"),
+    convBmpFileStream()
 {
-    assert(!filePath.empty() && "[Error] File Path is empty");
-    m_OriginalBmpFileStream.open(filePath.c_str(),std::ios::in | std::ios::binary );
-    assert(m_OriginalBmpFileStream.is_open() && "[Error] Wrong file");
-    assert(bmpFileHandler.IsBmp(m_OriginalBmpFileStream) && "[Error] Is not real BMP file");
+    assert(originalBmpFileStream.is_open() && "[Error] Wrong file");
+    assert(bmpFileHandler.IsBmp(originalBmpFileStream) && "[Error] Is not real BMP file");
 
-    GetBmpFileParameters();
-    m_maxBytesToHide = static_cast<unsigned int>(m_BmpImageSize / 8U);
-    m_BmpHeaderSize = m_BmpFileSizeInBytes - m_BmpImageSize;
-
+    auto foundPos = filePath.rfind('.');
+    if(foundPos != std::string::npos)
+    {
+        convBmpFilePath = filePath;
+        convBmpFilePath.insert(foundPos, "Converted");
+    }
 }
 
 SteganoEncoder::~SteganoEncoder()
 {
-    m_OriginalBmpFileStream.close();
-    m_ConvBmpFileStream.close();
+    originalBmpFileStream.close();
+    convBmpFileStream.close();
 }
 
-void SteganoEncoder::GetBmpFileParameters()
+bool SteganoEncoder::Encode(std::string &dataToHide)
 {
-    m_BmpFileSizeInBytes = bmpFileHandler.GetFileSizeInBytes(m_OriginalBmpFileStream);
+    std::string hideTxtData = dataToHide;
+    hideTxtData.push_back(endOfTextSign);
 
-    auto bmpWH = bmpFileHandler.GetImageWidthAndHeight(m_OriginalBmpFileStream);
+    const unsigned int numberBytesToHide = static_cast<unsigned int>(hideTxtData.size());
+    const unsigned int maxBytesToHide = static_cast<unsigned int>(bmpFileHandler.GetImageSize(originalBmpFileStream) / 8U);
+    const unsigned int bmpHeaderSize = bmpFileHandler.GetFileSizeInBytes(originalBmpFileStream) -  bmpFileHandler.GetImageSize(originalBmpFileStream);
 
-
-    m_BmpImageWidth = bmpWH.first;
-    m_BmpImageHeight = bmpWH.second;
-    m_BmpImageSize = bmpFileHandler.GetImageSize(m_OriginalBmpFileStream);
-}
-
-void SteganoEncoder::ShowBmpFile()
-{
-    //returning to the beginning of fstream
-    m_OriginalBmpFileStream.clear();
-    m_OriginalBmpFileStream.seekg(0,std::ios_base::beg );
-
-    std::cout<<"\n-------------------------------------    BMP    ------------------------------------------------\n";
-    while( !m_OriginalBmpFileStream.eof() )
+    if(maxBytesToHide < numberBytesToHide)
     {
-        std::cout << m_OriginalBmpFileStream.get()<< " ";
-    }
-    std::cout<<"\n-------------------------------------   End of BMP   ------------------------------------------------\n";
-    
-    //returning to the beginning of fstream
-    m_OriginalBmpFileStream.clear();
-    m_OriginalBmpFileStream.seekg(0,std::ios_base::beg );
-}
-
-void SteganoEncoder::ShowBmpFileParameters()
-{
-    std::cout<<"\n------------------------------\nBMP file parameters:"<<std::endl;
-
-    std::cout<<" - BMP Width: "<<m_BmpImageWidth<<" pix"<<std::endl;
-    std::cout<<" - BMP Height: "<<m_BmpImageHeight<<" pix"<<std::endl;
-    std::cout<<" - BMP File Size in Bytes: "<<m_BmpFileSizeInBytes<<std::endl;
-    std::cout<<" - BMP Header Size in Bytes: "<< m_BmpHeaderSize<<std::endl;
-    std::cout<<" - BMP Image Size in Bytes: "<<m_BmpImageSize<<std::endl;
-
-    std::cout<<" - Nr of Bytes To Hide: "<<m_maxBytesToHide<<std::endl;
-    std::cout<<"------------------------------\n"<<std::endl;
-}
-
-bool SteganoEncoder::Hide(std::string &hideTxtData, std::string &convBmpFilePath)
-{
-    m_nrOfBytesToHide = hideTxtData.size();
-
-    if(m_maxBytesToHide < m_nrOfBytesToHide)
-    {
-        std::cout<<"Error no enough place to hide"<<std::endl;
-        std::cout<<"Nr of Bytes To Hide: "<<m_maxBytesToHide<<std::endl;
-        std::cout<<"String Byte size: "<<m_nrOfBytesToHide<<std::endl;
+        std::cout<<"Error no enough place to hide\n";
+        std::cout<<"Max bytes: "<<maxBytesToHide<<"\n";
+        std::cout<<"Number of bytes to hide: "<<numberBytesToHide<<"\n";
         return false;
     }
 
     //-------------------Create BMP File-------------------
-
-    if(!CreateConvBmpFile(convBmpFilePath))
+    convBmpFileStream.open(convBmpFilePath.c_str(), std::fstream::out |std::fstream::binary);
+    if(convBmpFileStream.bad())
     {
         std::cout<<"Something wrong with Converted BMP file creation: "<<convBmpFilePath<<std::endl;
         return false;
     }
-    std::cout<<"BMP file "<<convBmpFilePath<<" has been created."<<std::endl;
 
-    std::cout<<"Text Hiding..."<<std::endl;
+    std::cout<<"BMP file "<<convBmpFilePath<<" has been created."<<std::endl;
+    std::cout<<"Text Hiding...\n";
 
     //------------------- Copying BMP Header -------------------
 
     //returning to the beginning of fstream
-    m_OriginalBmpFileStream.clear();
-    m_OriginalBmpFileStream.seekg(0,std::ios_base::beg );
+    originalBmpFileStream.seekg(0, originalBmpFileStream.beg);
+    convBmpFileStream.seekg(0, convBmpFileStream.beg);
 
-    m_ConvBmpFileStream.clear();
-    m_ConvBmpFileStream.seekg(0,std::ios_base::beg );
-
-    char znak;
-
-    for(unsigned int i = 0U; i < m_BmpHeaderSize; i++)
+    for(auto i = 0; i < bmpHeaderSize; i++)
     {
-        znak = m_OriginalBmpFileStream.get();
-        m_ConvBmpFileStream.put(znak);
+        convBmpFileStream.put(originalBmpFileStream.get());
     }
-
     //-------------------  Hide data in BMP  -------------------
-    HideStringIntoBmpImageStructure(hideTxtData);
+    HideDataIntoBmp(hideTxtData);
 
-    std::cout<<"Done !"<<std::endl;
-
-    m_ConvBmpFileStream.close();
-    m_OriginalBmpFileStream.close();
+    convBmpFileStream.close();
+    originalBmpFileStream.close();
 
     return true;
 }
 
-bool SteganoEncoder::CreateConvBmpFile(std::string &convBmpFilePath)
+
+void SteganoEncoder::HideDataIntoBmp(std::string &hideTxtData)
 {
-    if(convBmpFilePath.empty())
+    const unsigned int numberBytesToHide = static_cast<unsigned int>(hideTxtData.size());
+
+    for(auto byteIndex = 0; byteIndex<numberBytesToHide; byteIndex++)
     {
-        return false;
-    }
-
-    m_ConvBmpFilePath = convBmpFilePath;
-
-    m_ConvBmpFileStream.open(m_ConvBmpFilePath.c_str(), std::ios::out|std::ios::binary);
-
-    if(m_ConvBmpFileStream.bad())
-    {
-        return false;
-    }
-
-    return true;
-}
-
-void SteganoEncoder::HideStringIntoBmpImageStructure(std::string &hideTxtData)
-{
-    char stringChar;
-    char tempChar;
-
-    for(unsigned int byteIndex = 0U; byteIndex < hideTxtData.size(); byteIndex++)
-    {
-        stringChar = hideTxtData[byteIndex];
+        char stringChar = hideTxtData[byteIndex];
         std::bitset<8> bsetString(stringChar);
 
-        for(unsigned int bitIndex = 0U; bitIndex < 8U; bitIndex++ )
+        for(auto bitIndex = 0; bitIndex < 8; bitIndex++)
         {
-            tempChar = m_OriginalBmpFileStream.get();
+            char tempChar = originalBmpFileStream.get();
             std::bitset<8> bsetBmp(tempChar);
             bsetBmp.set(0,bsetString[bitIndex]);
             tempChar = (char)bsetBmp.to_ulong();
-            m_ConvBmpFileStream.put(tempChar);
+            convBmpFileStream.put(tempChar);
         }
     }
 
-    for(int bmpIndex = m_OriginalBmpFileStream.tellg(); bmpIndex < m_BmpFileSizeInBytes; bmpIndex++)
+    const unsigned int bmpFileSizeInBytes = bmpFileHandler.GetFileSizeInBytes(originalBmpFileStream);
+
+    for(int bmpIndex = originalBmpFileStream.tellg(); bmpIndex<bmpFileSizeInBytes; bmpIndex++)
     {
-        tempChar = m_OriginalBmpFileStream.get();
-        m_ConvBmpFileStream.put(tempChar);
+        convBmpFileStream.put(originalBmpFileStream.get());
     }
-}
-
-void SteganoEncoder::GetDataQWord(int offset,unsigned int &rOutput)
-{
-    unsigned char byteArray[4U];
-
-    //returning to the beginning of fstream
-    m_OriginalBmpFileStream.clear();
-    m_OriginalBmpFileStream.seekg(offset,std::ios_base::beg );
-
-    for (unsigned int i = 0U; i < 4U; i++)
-    {
-        byteArray[i] = static_cast<unsigned char>(m_OriginalBmpFileStream.get());
-    }
-    rOutput = static_cast<unsigned int>( (byteArray[3U] << 24U) | (byteArray[2U] << 16U) | (byteArray[1U] << 8U) | (byteArray[0U] << 0U) );
 }

@@ -1,0 +1,4 @@
+add_library(SteganoDecoder STATIC SteganoDecoder.cpp)
+target_include_directories(SteganoDecoder PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries(SteganoDecoder PUBLIC BmpHandler)
+ 

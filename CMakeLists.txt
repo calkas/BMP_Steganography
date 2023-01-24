@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(Libs)
 add_subdirectory(Steganography_Encoder)
+add_subdirectory(Steganography_Decoder)
 add_subdirectory(Tests)
 
 enable_testing()

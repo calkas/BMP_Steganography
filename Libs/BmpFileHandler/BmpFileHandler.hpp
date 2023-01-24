@@ -12,14 +12,12 @@ public:
     unsigned GetImageSize(std::ifstream &file);
 
 private:
-
     unsigned int GetDataFromFile(const int offset, std::ifstream &file);
 
-
-    static const int BMP_FILE_SIZE_OFFSET    = 2;
-    static const int BMP_IMAGE_WIDTH_OFFSET  = 18;
-    static const int BMP_IMAGE_HEIGHT_OFFSET = 22;
-    static const int BMP_IMAGE_SIZE_OFFSET   = 34;
+    static const int BMP_FILE_SIZE_OFFSET     {2};
+    static const int BMP_IMAGE_WIDTH_OFFSET  {18};
+    static const int BMP_IMAGE_HEIGHT_OFFSET {22};
+    static const int BMP_IMAGE_SIZE_OFFSET   {34};
 };
 
 #endif
