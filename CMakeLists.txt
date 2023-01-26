@@ -12,5 +12,12 @@ add_subdirectory(Tests)
 
 enable_testing()
 
+message("Copying files for unit testing...")
+
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Mics/Test_Img.bmp
      DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Tests/LibTest/BmpFileHandlerTest)
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Mics/Test_ImgEncodeDecode.bmp
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Tests/AppTest)
+     
+message("Done")

@@ -6,7 +6,7 @@
 class SteganoDecoder
 {
 public:
-    bool Decode(std::string &bmpPath, std::string &out);
+    bool Decode(const std::string &bmpPath, std::string &out);
 private:
     const char endOfTextSign {'\x02'};
 };

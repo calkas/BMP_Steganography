@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <bitset>
 
-SteganoEncoder::SteganoEncoder(std::string &filePath) :
+SteganoEncoder::SteganoEncoder(const std::string &filePath) :
     bmpFileHandler(),
     originalBmpFileStream(filePath.c_str(), std::ios::in | std::ios::binary),
     convBmpFilePath("Converted.bmp"),
@@ -73,6 +73,10 @@ bool SteganoEncoder::Encode(std::string &dataToHide)
     return true;
 }
 
+unsigned int SteganoEncoder::GetMaxBytesToHide()
+{
+    return static_cast<unsigned int>(bmpFileHandler.GetImageSize(originalBmpFileStream) / 8U) - 1;
+}
 
 void SteganoEncoder::HideDataIntoBmp(std::string &hideTxtData)
 {

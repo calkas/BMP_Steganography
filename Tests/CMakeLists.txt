@@ -13,3 +13,4 @@ if(NOT googletest_POPULATED)
 endif()
 
 add_subdirectory(LibTest)
+add_subdirectory(AppTest)

@@ -8,9 +8,10 @@
 class SteganoEncoder
 {
 public:
-    SteganoEncoder(std::string &filePath);
+    SteganoEncoder(const std::string &filePath);
     ~SteganoEncoder();
     bool Encode(std::string &dataToHide);
+    unsigned int GetMaxBytesToHide();
 
 private:
     void HideDataIntoBmp(std::string &hideTxtData);

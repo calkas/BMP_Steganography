@@ -4,10 +4,10 @@
 #include <bitset>
 #include "BmpFileHandler.hpp"
 
-bool SteganoDecoder::Decode(std::string &bmpPath, std::string &out)
+bool SteganoDecoder::Decode(const std::string &bmpPath, std::string &out)
 {
     std::ifstream file(bmpPath.c_str(), std::ifstream::in | std::ifstream::binary);
-    if(file.bad())
+    if(!file.is_open())
     {
         std::cout<<"Error No Bmp file loaded\n";
         return false;
