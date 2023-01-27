@@ -8,4 +8,4 @@ target_link_libraries(BmpFileHandlerTest
 	BmpHandler
 )
 
-add_test(UT_CmdDispatcherTest BmpFileHandlerTest)
+add_test(UT_BmpFileHandlerTest BmpFileHandlerTest)
