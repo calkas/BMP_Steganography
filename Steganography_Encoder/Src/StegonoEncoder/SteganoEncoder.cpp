@@ -1,23 +1,13 @@
 #include "SteganoEncoder.hpp"
 #include <iostream>
-#include <assert.h>
 #include <bitset>
 
-SteganoEncoder::SteganoEncoder(const std::string &filePath) :
+SteganoEncoder::SteganoEncoder():
     bmpFileHandler(),
-    originalBmpFileStream(filePath.c_str(), std::ios::in | std::ios::binary),
-    convBmpFilePath("Converted.bmp"),
+    bmpFilePath(),
+    originalBmpFileStream(),
     convBmpFileStream()
 {
-    assert(originalBmpFileStream.is_open() && "[Error] Wrong file");
-    assert(bmpFileHandler.IsBmp(originalBmpFileStream) && "[Error] Is not real BMP file");
-
-    auto foundPos = filePath.rfind('.');
-    if(foundPos != std::string::npos)
-    {
-        convBmpFilePath = filePath;
-        convBmpFilePath.insert(foundPos, "Converted");
-    }
 }
 
 SteganoEncoder::~SteganoEncoder()
@@ -26,34 +16,41 @@ SteganoEncoder::~SteganoEncoder()
     convBmpFileStream.close();
 }
 
-bool SteganoEncoder::Encode(std::string &dataToHide)
+bool SteganoEncoder::OpenBmpFile(const std::string &filePath)
 {
-    std::string hideTxtData = dataToHide;
+    originalBmpFileStream.open(filePath, std::ios::in | std::ios::binary);
+    if(!originalBmpFileStream.is_open())
+        return false;
+
+    if(!bmpFileHandler.IsBmp(originalBmpFileStream))
+        return false;
+
+    bmpFilePath = filePath;
+
+    return true;
+}
+
+
+unsigned int SteganoEncoder::GetMaxBytesToHide()
+{
+    return static_cast<unsigned int>(bmpFileHandler.GetImageSize(originalBmpFileStream) / 8) - 1;
+}
+
+bool SteganoEncoder::Encode(std::string_view dataToHide)
+{
+    std::string hideTxtData {dataToHide};
     hideTxtData.push_back(endOfTextSign);
 
-    const unsigned int numberBytesToHide = static_cast<unsigned int>(hideTxtData.size());
-    const unsigned int maxBytesToHide = static_cast<unsigned int>(bmpFileHandler.GetImageSize(originalBmpFileStream) / 8U);
+    const unsigned int maxBytesToHide = static_cast<unsigned int>(bmpFileHandler.GetImageSize(originalBmpFileStream) / 8);
     const unsigned int bmpHeaderSize = bmpFileHandler.GetFileSizeInBytes(originalBmpFileStream) -  bmpFileHandler.GetImageSize(originalBmpFileStream);
 
-    if(maxBytesToHide < numberBytesToHide)
-    {
-        std::cout<<"Error no enough place to hide\n";
-        std::cout<<"Max bytes: "<<maxBytesToHide<<"\n";
-        std::cout<<"Number of bytes to hide: "<<numberBytesToHide<<"\n";
+    if(maxBytesToHide < hideTxtData.length())
         return false;
-    }
 
-    //-------------------Create BMP File-------------------
-    convBmpFileStream.open(convBmpFilePath.c_str(), std::fstream::out |std::fstream::binary);
-    if(convBmpFileStream.bad())
-    {
-        std::cout<<"Something wrong with Converted BMP file creation: "<<convBmpFilePath<<std::endl;
+    if(!CreateOutputBmpFile())
         return false;
-    }
 
-    std::cout<<"BMP file "<<convBmpFilePath<<" has been created."<<std::endl;
-    std::cout<<"Text Hiding...\n";
-
+    
     //------------------- Copying BMP Header -------------------
 
     //returning to the beginning of fstream
@@ -64,18 +61,13 @@ bool SteganoEncoder::Encode(std::string &dataToHide)
     {
         convBmpFileStream.put(originalBmpFileStream.get());
     }
-    //-------------------  Hide data in BMP  -------------------
+
     HideDataIntoBmp(hideTxtData);
 
     convBmpFileStream.close();
     originalBmpFileStream.close();
 
     return true;
-}
-
-unsigned int SteganoEncoder::GetMaxBytesToHide()
-{
-    return static_cast<unsigned int>(bmpFileHandler.GetImageSize(originalBmpFileStream) / 8U) - 1;
 }
 
 void SteganoEncoder::HideDataIntoBmp(std::string &hideTxtData)
@@ -103,4 +95,19 @@ void SteganoEncoder::HideDataIntoBmp(std::string &hideTxtData)
     {
         convBmpFileStream.put(originalBmpFileStream.get());
     }
+}
+
+bool SteganoEncoder::CreateOutputBmpFile()
+{
+    auto foundPos = bmpFilePath.rfind('.');
+    if(foundPos == std::string::npos)
+        return false;
+
+    std::string convBmpFilePath {bmpFilePath};
+    convBmpFilePath.insert(foundPos, "Converted");
+    convBmpFileStream.open(convBmpFilePath, std::fstream::out |std::fstream::binary);
+    if(!convBmpFileStream.is_open())
+        return false;
+
+    return true;
 }

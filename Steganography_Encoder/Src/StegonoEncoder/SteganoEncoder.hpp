@@ -3,24 +3,26 @@
 
 #include <fstream>
 #include <string>
+#include <string_view>
 #include "BmpFileHandler.hpp"
 
 class SteganoEncoder
 {
 public:
-    SteganoEncoder(const std::string &filePath);
+    SteganoEncoder();
     ~SteganoEncoder();
-    bool Encode(std::string &dataToHide);
+    bool OpenBmpFile(const std::string &filePath);
     unsigned int GetMaxBytesToHide();
-
+    bool Encode(std::string_view dataToHide);
 private:
     void HideDataIntoBmp(std::string &hideTxtData);
+    bool CreateOutputBmpFile();
 
     BmpFileHandler bmpFileHandler;
+    std::string bmpFilePath;
     std::ifstream originalBmpFileStream;
-    std::string convBmpFilePath;
     std::fstream convBmpFileStream;
-
+    
     const char endOfTextSign {'\x02'};
 };
 
