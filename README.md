@@ -8,27 +8,7 @@ This project consists of two applications:
 
 ## Working Diagram
 
-```plantuml
-
-@startuml
-rectangle textToHide
-file OriginalBmpFile 
-node SteganoEncoder #pink
-node SteganoDecoder #lightblue
-file ConvertedBmpFile
-rectangle decodedText
-
-textToHide -> SteganoEncoder
-OriginalBmpFile -down-> SteganoEncoder
-
-SteganoEncoder -> ConvertedBmpFile
-
-
-ConvertedBmpFile -> SteganoDecoder
-SteganoDecoder -down-> decodedText
-@enduml
-
-```
+![image info](./Mics/diagram.png)
 
 # Links
 
