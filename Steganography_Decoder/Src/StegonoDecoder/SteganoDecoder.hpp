@@ -2,13 +2,18 @@
 #define STEGANO_DECODER_HPP
 
 #include <string>
-
+#include <string_view>
+#include <fstream>
+#include "BmpFileHandler.hpp"
 class SteganoDecoder
 {
 public:
-    bool Decode(const std::string &bmpPath, std::string &out);
+    SteganoDecoder();
+    ~SteganoDecoder() = default;
+    bool Decode(std::string_view bmpPath, std::string &out);
 private:
-    const char endOfTextSign {'\x02'};
+    bool ValidateInputFile(std::ifstream &file);
+    BmpFileHandler bmpFileHandler;
 };
 
 #endif

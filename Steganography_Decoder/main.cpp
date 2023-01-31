@@ -22,7 +22,11 @@ int main(int argc, char** argv) {
 
     SteganoDecoder decoder;
     string out;
-    decoder.Decode(Path, out);
-    cout <<"Decoded secret code: "<<out<<endl;
+    if(!decoder.Decode(Path, out))
+    {
+        cout << "[Error] Decoding problem\n";
+        return 1;
+    }
+    cout <<"Decoded secret code: "<<out<<"\n";
     return 0;
 }

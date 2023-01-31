@@ -11,19 +11,18 @@ class SteganoEncoder
 public:
     SteganoEncoder();
     ~SteganoEncoder();
-    bool OpenBmpFile(const std::string &filePath);
+    bool OpenBmpFile(std::string filePath);
     unsigned int GetMaxBytesToHide();
-    bool Encode(std::string_view dataToHide);
+    bool Encode(std::string hideTxtData);
 private:
-    void HideDataIntoBmp(std::string &hideTxtData);
+    void CopyBmpHeader();
+    void HideDataIntoBmp(std::string_view hideTxtData);
     bool CreateOutputBmpFile();
 
     BmpFileHandler bmpFileHandler;
     std::string bmpFilePath;
     std::ifstream originalBmpFileStream;
     std::fstream convBmpFileStream;
-    
-    const char endOfTextSign {'\x02'};
 };
 
 #endif

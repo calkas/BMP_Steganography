@@ -1,5 +1,4 @@
 #include "SteganoEncoder.hpp"
-#include <iostream>
 #include <bitset>
 
 SteganoEncoder::SteganoEncoder():
@@ -16,7 +15,7 @@ SteganoEncoder::~SteganoEncoder()
     convBmpFileStream.close();
 }
 
-bool SteganoEncoder::OpenBmpFile(const std::string &filePath)
+bool SteganoEncoder::OpenBmpFile(std::string filePath)
 {
     originalBmpFileStream.open(filePath, std::ios::in | std::ios::binary);
     if(!originalBmpFileStream.is_open())
@@ -26,23 +25,20 @@ bool SteganoEncoder::OpenBmpFile(const std::string &filePath)
         return false;
 
     bmpFilePath = filePath;
-
     return true;
 }
-
 
 unsigned int SteganoEncoder::GetMaxBytesToHide()
 {
     return static_cast<unsigned int>(bmpFileHandler.GetImageSize(originalBmpFileStream) / 8) - 1;
 }
 
-bool SteganoEncoder::Encode(std::string_view dataToHide)
+bool SteganoEncoder::Encode(std::string hideTxtData)
 {
-    std::string hideTxtData {dataToHide};
+    const char endOfTextSign {'\x02'};
     hideTxtData.push_back(endOfTextSign);
 
     const unsigned int maxBytesToHide = static_cast<unsigned int>(bmpFileHandler.GetImageSize(originalBmpFileStream) / 8);
-    const unsigned int bmpHeaderSize = bmpFileHandler.GetFileSizeInBytes(originalBmpFileStream) -  bmpFileHandler.GetImageSize(originalBmpFileStream);
 
     if(maxBytesToHide < hideTxtData.length())
         return false;
@@ -50,18 +46,7 @@ bool SteganoEncoder::Encode(std::string_view dataToHide)
     if(!CreateOutputBmpFile())
         return false;
 
-    
-    //------------------- Copying BMP Header -------------------
-
-    //returning to the beginning of fstream
-    originalBmpFileStream.seekg(0, originalBmpFileStream.beg);
-    convBmpFileStream.seekg(0, convBmpFileStream.beg);
-
-    for(auto i = 0; i < bmpHeaderSize; i++)
-    {
-        convBmpFileStream.put(originalBmpFileStream.get());
-    }
-
+    CopyBmpHeader();
     HideDataIntoBmp(hideTxtData);
 
     convBmpFileStream.close();
@@ -70,7 +55,19 @@ bool SteganoEncoder::Encode(std::string_view dataToHide)
     return true;
 }
 
-void SteganoEncoder::HideDataIntoBmp(std::string &hideTxtData)
+void SteganoEncoder::CopyBmpHeader() 
+{
+    originalBmpFileStream.seekg(0, originalBmpFileStream.beg);
+    convBmpFileStream.seekg(0, convBmpFileStream.beg);
+
+    const unsigned int bmpHeaderSize = bmpFileHandler.GetFileSizeInBytes(originalBmpFileStream) -  bmpFileHandler.GetImageSize(originalBmpFileStream);
+    for(auto i = 0; i < bmpHeaderSize; i++)
+    {
+        convBmpFileStream.put(originalBmpFileStream.get());
+    }
+}
+
+void SteganoEncoder::HideDataIntoBmp(std::string_view hideTxtData)
 {
     const unsigned int numberBytesToHide = static_cast<unsigned int>(hideTxtData.size());
 

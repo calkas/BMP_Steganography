@@ -1,15 +1,11 @@
 #include "BmpFileHandler.hpp"
-#include <iostream>
 #include <fstream>
 #include <array>
 
 bool BmpFileHandler::IsBmp(std::ifstream &file)
 {
     if(!file.is_open())
-    {
-        std::cout << "[Error] Problem with processing file\n";
         return false;
-    }
 
     std::array<char, 2>bmpSignature;
 
@@ -20,9 +16,7 @@ bool BmpFileHandler::IsBmp(std::ifstream &file)
     bmpSignature[1] = file.get();
 
     if((bmpSignature[0] != 'B') && (bmpSignature[1] != 'M'))
-    {
         return false;
-    }
 
     file.seekg(currentPos, file.beg);
     return true;

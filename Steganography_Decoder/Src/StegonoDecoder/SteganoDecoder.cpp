@@ -1,21 +1,21 @@
 #include "SteganoDecoder.hpp"
-#include <iostream>
-#include <fstream>
 #include <bitset>
-#include "BmpFileHandler.hpp"
 
-bool SteganoDecoder::Decode(const std::string &bmpPath, std::string &out)
+SteganoDecoder::SteganoDecoder() : bmpFileHandler() 
 {
-    std::ifstream file(bmpPath.c_str(), std::ifstream::in | std::ifstream::binary);
-    if(!file.is_open())
-    {
-        std::cout<<"Error No Bmp file loaded\n";
-        return false;
-    }
+}
 
+bool SteganoDecoder::Decode(std::string_view bmpPath, std::string &out)
+{
+    std::ifstream file(std::string(bmpPath), std::ifstream::in | std::ifstream::binary);
+
+    if(!ValidateInputFile(file))
+        return false;
+ 
     out.clear();
-    BmpFileHandler bmpFileHandler;
+    
     const unsigned int bmpHeaderSize = bmpFileHandler.GetFileSizeInBytes(file) - bmpFileHandler.GetImageSize(file);
+    const char endOfTextSign {'\x02'};
     file.seekg(bmpHeaderSize, std::ios_base::beg);
 
     for(auto byteId = 0; byteId < bmpFileHandler.GetImageSize(file); ++byteId)
@@ -39,5 +39,18 @@ bool SteganoDecoder::Decode(const std::string &bmpPath, std::string &out)
     }
 
     file.close();
+    return true;
+}
+
+bool SteganoDecoder::ValidateInputFile(std::ifstream &file)
+{
+    if(!file.is_open())
+        return false;
+    
+    if(!bmpFileHandler.IsBmp(file))
+    {
+        file.close();
+        return false;
+    }
     return true;
 }
