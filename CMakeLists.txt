@@ -10,8 +10,6 @@ add_subdirectory(Steganography_Encoder)
 add_subdirectory(Steganography_Decoder)
 add_subdirectory(Tests)
 
-enable_testing()
-
 message("Copying files for unit testing...")
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Mics/Test_Img.bmp

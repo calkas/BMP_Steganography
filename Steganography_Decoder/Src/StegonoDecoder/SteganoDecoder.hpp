@@ -8,12 +8,10 @@
 class SteganoDecoder
 {
 public:
-    SteganoDecoder();
-    ~SteganoDecoder() = default;
     bool Decode(std::string_view bmpPath, std::string &out);
 private:
     bool ValidateInputFile(std::ifstream &file);
-    BmpFileHandler bmpFileHandler;
+    BmpFileHandler bmpFileHandler {};
 };
 
 #endif

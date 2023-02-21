@@ -9,7 +9,7 @@
 class SteganoEncoder
 {
 public:
-    SteganoEncoder();
+    SteganoEncoder() = default;
     ~SteganoEncoder();
     bool OpenBmpFile(std::string filePath);
     unsigned int GetMaxBytesToHide();
@@ -19,10 +19,10 @@ private:
     void HideDataIntoBmp(std::string_view hideTxtData);
     bool CreateOutputBmpFile();
 
-    BmpFileHandler bmpFileHandler;
-    std::string bmpFilePath;
-    std::ifstream originalBmpFileStream;
-    std::fstream convBmpFileStream;
+    BmpFileHandler bmpFileHandler {};
+    std::string bmpFilePath {};
+    std::ifstream originalBmpFileStream {};
+    std::fstream convBmpFileStream {};
 };
 
 #endif

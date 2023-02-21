@@ -6,7 +6,6 @@ using namespace std;
 
 int main(int argc, char** argv) 
 {
-
     if(argc != 3)
     {
         cout << "[Error] Wrong number of arguments" <<endl;
@@ -31,7 +30,7 @@ int main(int argc, char** argv)
 
     string dataToHide(argv[2]);
 
-    if(!encoder.GetMaxBytesToHide() < dataToHide.length())
+    if(!(encoder.GetMaxBytesToHide() < dataToHide.length()))
     {
         cout<<"[Error] No enough place to hide\n";
         cout<<" - Max bytes: "<< encoder.GetMaxBytesToHide() <<"\n";

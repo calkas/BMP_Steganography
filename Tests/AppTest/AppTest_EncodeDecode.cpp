@@ -37,7 +37,7 @@ TEST(SteganoDecoderTest, ShouldFalseIfPathIsWrong)
 TEST(AppTest, EncodeDecodeTest)
 {
     SteganoEncoder encoder;
-    std::string data = "Top Secret number #6999";
+    std::string data {"Top Secret number #6999"};
 
     EXPECT_TRUE(encoder.OpenBmpFile(PATH));
     EXPECT_TRUE(encoder.Encode(data));

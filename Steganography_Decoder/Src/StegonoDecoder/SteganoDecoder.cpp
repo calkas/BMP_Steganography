@@ -1,10 +1,6 @@
 #include "SteganoDecoder.hpp"
 #include <bitset>
 
-SteganoDecoder::SteganoDecoder() : bmpFileHandler() 
-{
-}
-
 bool SteganoDecoder::Decode(std::string_view bmpPath, std::string &out)
 {
     std::ifstream file(std::string(bmpPath), std::ifstream::in | std::ifstream::binary);
@@ -15,7 +11,7 @@ bool SteganoDecoder::Decode(std::string_view bmpPath, std::string &out)
     out.clear();
     
     const unsigned int bmpHeaderSize = bmpFileHandler.GetFileSizeInBytes(file) - bmpFileHandler.GetImageSize(file);
-    const char endOfTextSign {'\x02'};
+    constexpr char endOfTextSign {'\x02'};
     file.seekg(bmpHeaderSize, std::ios_base::beg);
 
     for(auto byteId = 0; byteId < bmpFileHandler.GetImageSize(file); ++byteId)
@@ -34,7 +30,6 @@ bool SteganoDecoder::Decode(std::string_view bmpPath, std::string &out)
         {
             break;
         }
-
         out.push_back(stringChar);
     }
 

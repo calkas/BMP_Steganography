@@ -1,2 +1,2 @@
 add_library(BmpHandler STATIC BmpFileHandler.cpp)
-target_include_directories(BmpHandler PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(BmpHandler INTERFACE ${CMAKE_CURRENT_LIST_DIR})

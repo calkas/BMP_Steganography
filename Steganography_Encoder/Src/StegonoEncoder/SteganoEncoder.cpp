@@ -1,14 +1,6 @@
 #include "SteganoEncoder.hpp"
 #include <bitset>
 
-SteganoEncoder::SteganoEncoder():
-    bmpFileHandler(),
-    bmpFilePath(),
-    originalBmpFileStream(),
-    convBmpFileStream()
-{
-}
-
 SteganoEncoder::~SteganoEncoder()
 {
     originalBmpFileStream.close();

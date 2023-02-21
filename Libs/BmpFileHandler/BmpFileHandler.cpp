@@ -47,7 +47,7 @@ unsigned int BmpFileHandler::GetDataFromFile(const int offset, std::ifstream &fi
     file.seekg(0, file.beg);
     file.seekg(offset, file.beg);
 
-    for(auto i = 0; i<bmpData.size(); i++)
+    for(auto i = 0; i < bmpData.size(); i++)
     {
         bmpData[i] = static_cast<unsigned char>(file.get());
     }

@@ -4,9 +4,9 @@ target_link_libraries(AppTestEncodeDecode
     	BmpHandler
 	StegonoEncoder
 	SteganoDecoder
-        gtest 
-        gmock 
         gtest_main
 )
+
+enable_testing()
 
 add_test(UT_AppTestEncodeDecode AppTestEncodeDecode)
